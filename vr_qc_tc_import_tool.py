@@ -616,6 +616,93 @@ class EOfficeBot:
                 pass
         return False
 
+    def _is_effectively_enabled(self, locator) -> bool:
+        try:
+            return bool(
+                locator.evaluate(
+                    """
+                    (el) => {
+                        const disabledAttr = el.getAttribute && (
+                            el.getAttribute('disabled') !== null ||
+                            el.getAttribute('aria-disabled') === 'true'
+                        );
+                        const disabledProp = 'disabled' in el ? !!el.disabled : false;
+                        const className = (el.className || '').toString().toLowerCase();
+                        return !(disabledAttr || disabledProp || className.includes('disabled'));
+                    }
+                    """
+                )
+            )
+        except Exception:
+            return True
+
+    def _exact_action_candidates(self, root, text: str):
+        literal = self._xpath_literal(text)
+        return [
+            root.get_by_role("button", name=text),
+            root.locator(f"xpath=.//button[normalize-space(.)={literal}]"),
+            root.locator(f"xpath=.//a[normalize-space(.)={literal}]"),
+            root.locator(f"xpath=.//*[self::button or self::a or @role='button'][normalize-space(.)={literal}]"),
+        ]
+
+    def _modal_footer_action_candidates(self, modal_root, text: str):
+        literal = self._xpath_literal(text)
+        footer = modal_root.locator(".ant-modal-footer, [nz-modal-footer]").first
+        return [
+            footer.get_by_role("button", name=text),
+            footer.locator(f"xpath=.//button[normalize-space(.)={literal}]"),
+            footer.locator(f"xpath=.//a[normalize-space(.)={literal}]"),
+            footer.locator(
+                f"xpath=.//*[self::button or self::a or @role='button'][normalize-space(.)={literal}]"
+            ),
+        ]
+
+    def _upload_popup_root(self):
+        assert self.page is not None
+        popup_titles = ["Upload file", "Chọn file để upload"]
+        container_selectors = [
+            "div.ant-modal-content",
+            "div.ant-modal",
+            "div.ant-modal-wrap",
+            "nz-modal-container",
+            "div[role='dialog']",
+        ]
+
+        for title in popup_titles:
+            for selector in container_selectors:
+                try:
+                    popup = self._first_visible(self.page.locator(selector).filter(has_text=title))
+                    if popup is not None:
+                        return popup
+                except Exception:
+                    pass
+
+        title_locators = [
+            self.page.get_by_text("Upload file", exact=True),
+            self.page.get_by_text("Chọn file để upload", exact=True),
+            self.page.locator("h1, h2, h3, h4, .ant-modal-title").filter(has_text="Upload file"),
+        ]
+        ancestor_selectors = [
+            "xpath=ancestor::div[contains(@class,'ant-modal-content')][1]",
+            "xpath=ancestor::div[contains(@class,'ant-modal')][1]",
+            "xpath=ancestor::div[contains(@class,'ant-modal-wrap')][1]",
+            "xpath=ancestor::nz-modal-container[1]",
+            "xpath=ancestor::*[@role='dialog'][1]",
+        ]
+
+        for title in title_locators:
+            visible_title = self._first_visible(title)
+            if visible_title is None:
+                continue
+            for selector in ancestor_selectors:
+                try:
+                    popup = self._first_visible(visible_title.locator(selector))
+                    if popup is not None:
+                        return popup
+                except Exception:
+                    pass
+        return None
+
     def _kho_root(self):
         assert self.page is not None
         modal_title = "Kho d\u1eef li\u1ec7u"
@@ -704,6 +791,18 @@ class EOfficeBot:
             "\n".join(dict.fromkeys(lines)),
             encoding="utf-8",
         )
+
+    def debug_dump_upload_popup(self, popup) -> None:
+        try:
+            html = popup.inner_html()
+            (SCREENSHOT_DIR / "debug_upload_popup.html").write_text(html, encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            txt = popup.inner_text()
+            (SCREENSHOT_DIR / "debug_upload_popup.txt").write_text(txt, encoding="utf-8")
+        except Exception:
+            pass
 
     # -------------------------
     # Form helpers
@@ -1129,39 +1228,18 @@ class EOfficeBot:
         self.open_upload_menu_for_current_folder()
         modal = self._kho_root()
 
-        upload_popup = None
-        popup_candidates = [
-            self.page.get_by_text("Upload file").locator(
-                "xpath=ancestor::div[contains(@class,'modal') or contains(@class,'ant-modal') or @role='dialog'][1]"
-            ),
-            self.page.get_by_text("T\u1ea3i file l\u00ean").locator(
-                "xpath=ancestor::div[contains(@class,'modal') or contains(@class,'ant-modal') or @role='dialog'][1]"
-            ),
-            self.page.get_by_text("Ch\u1ecdn file \u0111\u1ec3 upload").locator(
-                "xpath=ancestor::div[contains(@class,'modal') or contains(@class,'ant-modal') or @role='dialog'][1]"
-            ),
-            self.page.locator("input[type='file']").locator(
-                "xpath=ancestor::div[contains(@class,'modal') or contains(@class,'ant-modal') or @role='dialog'][1]"
-            ),
-        ]
-        for candidate in popup_candidates:
-            try:
-                visible_popup = self._first_visible(candidate)
-                if visible_popup is not None:
-                    upload_popup = visible_popup
-                    break
-            except Exception:
-                pass
+        upload_popup = self._upload_popup_root()
         if upload_popup is None:
             self.screenshot("debug_upload_popup_not_found.png")
             self.debug_dump_kho()
             raise RuntimeError(f"Kh\u00f4ng t\u00ecm th\u1ea5y popup upload cho: {file_path.name}")
+        self.debug_dump_upload_popup(upload_popup)
 
         clicked_file_chooser = False
         file_input_candidates = [
+            upload_popup.locator(".ant-upload input[type='file']"),
+            upload_popup.locator("input[type='file'][accept]"),
             upload_popup.locator("input[type='file']"),
-            self.page.locator("input[type='file']"),
-            self.page.locator("input[accept]"),
         ]
         for file_input in file_input_candidates:
             try:
@@ -1171,15 +1249,38 @@ class EOfficeBot:
                     try:
                         file_input.nth(i).set_input_files(str(file_path.resolve()))
                         time.sleep(0.5)
-                        if self._locator_has_selected_files(file_input):
-                            clicked_file_chooser = True
-                            break
+                        clicked_file_chooser = True
+                        try:
+                            if upload_popup.get_by_text(file_path.name, exact=False).count() > 0:
+                                break
+                        except Exception:
+                            pass
+                        break
                     except Exception:
                         pass
                 if clicked_file_chooser:
                     break
             except Exception:
                 pass
+
+        if not clicked_file_chooser:
+            chooser_targets = [
+                upload_popup.locator(".ant-upload.ant-upload-drag").first,
+                upload_popup.locator(".ant-upload").first,
+                upload_popup.get_by_text("Chọn file để upload", exact=True).first,
+            ]
+            for target in chooser_targets:
+                try:
+                    if target.count() == 0:
+                        continue
+                    with self.page.expect_file_chooser(timeout=3000) as fc_info:
+                        target.click(force=True)
+                    fc_info.value.set_files(str(file_path.resolve()))
+                    clicked_file_chooser = True
+                    time.sleep(0.5)
+                    break
+                except Exception:
+                    pass
 
         if not clicked_file_chooser:
             self.screenshot("debug_upload_popup_no_filechooser.png")
@@ -1196,29 +1297,46 @@ class EOfficeBot:
             time.sleep(0.5)
 
         if not file_name_visible:
+            logging.warning("Popup upload chua hien thi ten file, van thu upload: %s", file_path.name)
             self.screenshot("debug_upload_popup_file_not_visible.png")
-            raise RuntimeError(f"Popup upload chưa hiển thị file đã chọn: {file_path.name}")
 
-        time.sleep(1)
+        upload_enabled = False
+        for _ in range(10):
+            for button_text in ["Upload", "T\u1ea3i l\u00ean", "T\u1ea3i file l\u00ean"]:
+                try:
+                    for candidate in self._modal_footer_action_candidates(upload_popup, button_text):
+                        visible_btn = self._first_visible(candidate)
+                        if visible_btn is None:
+                            continue
+                        if self._is_effectively_enabled(visible_btn):
+                            upload_enabled = True
+                            break
+                    if upload_enabled:
+                        break
+                except Exception:
+                    pass
+            if upload_enabled:
+                break
+            time.sleep(0.5)
+
+        if not upload_enabled:
+            self.screenshot("debug_upload_button_disabled.png")
+            raise RuntimeError(f"Nút upload vẫn đang bị disable sau khi chọn file: {file_path.name}")
+
+        time.sleep(0.5)
 
         uploaded = False
         for button_text in ["Upload", "T\u1ea3i l\u00ean", "T\u1ea3i file l\u00ean"]:
             try:
-                button_candidates = [
-                    upload_popup.get_by_role("button", name=button_text),
-                    upload_popup.locator("button, a").filter(has_text=button_text),
-                    upload_popup.get_by_text(button_text, exact=True).locator(
-                        "xpath=ancestor-or-self::button[1] | ancestor-or-self::a[1] | ancestor-or-self::span[1]"
-                    ),
-                    self.page.get_by_role("button", name=button_text),
-                    self.page.locator("button, a").filter(has_text=button_text),
-                ]
+                button_candidates = self._modal_footer_action_candidates(upload_popup, button_text)
                 for candidate in button_candidates:
                     visible_btn = self._first_visible(candidate)
                     if visible_btn is None:
                         continue
+                    if not self._is_effectively_enabled(visible_btn):
+                        continue
                     visible_btn.click(force=True)
-                    time.sleep(3)
+                    time.sleep(2)
                     uploaded = True
                     break
                 if uploaded:
@@ -1229,18 +1347,76 @@ class EOfficeBot:
             self.screenshot("debug_upload_submit_not_found.png")
             raise RuntimeError(f"Kh\u00f4ng t\u00ecm th\u1ea5y n\u00fat upload cho: {file_path.name}")
 
-        try:
-            upload_popup.locator("button, a").filter(has_text="Thoát").first.click(force=True, timeout=3000)
-        except Exception:
-            pass
+        # Upload popup may stay open after submit; close it explicitly before verifying the library list.
+        for _ in range(10):
+            try:
+                if upload_popup.count() == 0 or not upload_popup.first.is_visible():
+                    break
+            except Exception:
+                break
+            closed = False
+            close_candidates = self._modal_footer_action_candidates(upload_popup, "Thoát") + [
+                upload_popup.locator("button[aria-label='Close']"),
+                upload_popup.locator(".ant-modal-close"),
+            ]
+            for candidate in close_candidates:
+                try:
+                    close_btn = self._first_visible(candidate)
+                    if close_btn is None:
+                        continue
+                    close_btn.click(force=True, timeout=2000)
+                    closed = True
+                    break
+                except Exception:
+                    pass
+            if not closed:
+                time.sleep(1)
+                continue
+            time.sleep(1)
 
-        try:
-            search_input = modal.locator("input[placeholder*='Tìm kiếm file'], input").first
-            search_input.fill("")
-            search_input.fill(file_path.name)
+        search_input = modal.locator("input[placeholder*='Tìm kiếm file'], input").first
+        refresh_candidates = [
+            modal.locator("i.bi-arrow-repeat").locator("xpath=ancestor::a[1]"),
+            modal.locator("[nztooltiptitle*='Làm mới']").locator("xpath=.//a | ancestor::a[1]"),
+            modal.locator("span").filter(has_text="Làm mới").locator("xpath=ancestor::a[1]"),
+        ]
+        search_terms = [file_path.name, file_path.stem]
+        found_in_list = False
+
+        for attempt in range(45):
+            try:
+                search_input.fill("")
+                search_input.fill(file_path.name)
+            except Exception:
+                pass
+
+            for term in search_terms:
+                try:
+                    if modal.get_by_text(term, exact=False).count() > 0:
+                        found_in_list = True
+                        break
+                except Exception:
+                    pass
+            if found_in_list:
+                break
+
+            if attempt % 5 == 4:
+                for candidate in refresh_candidates:
+                    try:
+                        refresh_btn = self._first_visible(candidate)
+                        if refresh_btn is None:
+                            continue
+                        refresh_btn.click(force=True, timeout=2000)
+                        time.sleep(1)
+                        break
+                    except Exception:
+                        pass
+
             time.sleep(2)
-        except Exception:
-            pass
+
+        if not found_in_list:
+            self.screenshot("debug_upload_finish_timeout.png")
+            raise RuntimeError(f"Upload không hoàn tất hoặc không thấy file sau khi upload: {file_path.name}")
 
     def ensure_files_uploaded(self, docs: list[SourceDocument]) -> None:
         uploaded_state = load_state("uploaded_files", {})
