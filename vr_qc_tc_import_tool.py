@@ -769,6 +769,27 @@ class EOfficeBot:
             modal.locator("span").filter(has_text="Làm mới").locator("xpath=ancestor::a[1]"),
         ]
 
+    def _first_visible_kho_result_item(self, modal=None):
+        modal = modal or self._kho_root()
+        result_locators = [
+            modal.locator(".right-fckEditor .card[id] .hoverDiv"),
+            modal.locator(".right-fckEditor tbody tr.odd a.text-gray-800"),
+            modal.locator(".right-fckEditor .card[id]"),
+            modal.locator(".right-fckEditor tbody tr.odd"),
+            modal.locator(".card[id] .hoverDiv"),
+            modal.locator("tbody tr.odd a.text-gray-800"),
+            modal.locator(".card[id]"),
+            modal.locator("tbody tr.odd"),
+        ]
+        for locator in result_locators:
+            try:
+                candidate = self._first_visible(locator)
+                if candidate is not None:
+                    return candidate
+            except Exception:
+                pass
+        return None
+
     def _file_appears_in_kho(self, file_name: str, attempts: int = 15, refresh_every: int = 5) -> bool:
         modal = self._kho_root()
         search_terms = [file_name, Path(file_name).stem]
@@ -788,6 +809,20 @@ class EOfficeBot:
                         return True
                 except Exception:
                     pass
+
+            for selector in [
+                f"[nztooltiptitle='{file_name}']",
+                f"[ng-reflect-nz-tooltip-title='{file_name}']",
+                f"[title='{file_name}']",
+            ]:
+                try:
+                    if modal.locator(selector).count() > 0:
+                        return True
+                except Exception:
+                    pass
+
+            if self._first_visible_kho_result_item(modal) is not None:
+                return True
 
             if refresh_every > 0 and attempt % refresh_every == refresh_every - 1:
                 for candidate in self._kho_refresh_candidates(modal):
@@ -1324,6 +1359,24 @@ class EOfficeBot:
 
     def select_file_card_in_modal(self, file_name: str) -> None:
         modal = self._kho_root()
+        for selector in [
+            f"[nztooltiptitle='{file_name}']",
+            f"[ng-reflect-nz-tooltip-title='{file_name}']",
+            f"[title='{file_name}']",
+        ]:
+            try:
+                candidate = self._first_visible(modal.locator(selector))
+                if candidate is not None:
+                    candidate.click(force=True)
+                    return
+            except Exception:
+                pass
+
+        result_item = self._first_visible_kho_result_item(modal)
+        if result_item is not None:
+            result_item.click(force=True)
+            return
+
         card = modal.locator("text=" + file_name).first
         card.wait_for(state="visible")
         card.click(force=True)
