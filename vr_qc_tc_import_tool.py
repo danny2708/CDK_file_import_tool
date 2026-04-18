@@ -703,6 +703,108 @@ class EOfficeBot:
                     pass
         return None
 
+    def _is_kho_modal_open(self) -> bool:
+        assert self.page is not None
+        try:
+            return (
+                self._first_visible(
+                    self.page.locator(
+                        "div.ant-modal-wrap, div.ant-modal, nz-modal-container, div[role='dialog']"
+                    ).filter(has_text="Kho dữ liệu")
+                )
+                is not None
+            )
+        except Exception:
+            return False
+
+    def _kho_file_search_input(self, modal=None):
+        modal = modal or self._kho_root()
+        selectors = [
+            "input[placeholder*='Tìm kiếm file']",
+            "input[placeholder*='Tim kiem file']",
+            "input[placeholder='Tìm kiếm file']",
+            "input[placeholder='Tim kiem file']",
+        ]
+        for selector in selectors:
+            try:
+                candidate = self._first_visible(modal.locator(selector))
+                if candidate is not None:
+                    return candidate
+            except Exception:
+                pass
+        return modal.locator("input").first
+
+    def _trigger_kho_search(self, modal=None) -> None:
+        modal = modal or self._kho_root()
+        search_input = self._kho_file_search_input(modal)
+        try:
+            search_input.press("Enter")
+            time.sleep(0.8)
+            return
+        except Exception:
+            pass
+
+        search_icons = [
+            modal.locator("i.bi-search").locator("xpath=ancestor::*[@role='button'][1]"),
+            modal.locator("i.bi-search").locator("xpath=ancestor::a[1]"),
+            modal.locator("i.bi-search"),
+        ]
+        for candidate in search_icons:
+            try:
+                btn = self._first_visible(candidate)
+                if btn is None:
+                    continue
+                btn.click(force=True, timeout=2000)
+                time.sleep(0.8)
+                return
+            except Exception:
+                pass
+
+    def _kho_refresh_candidates(self, modal=None) -> list[Any]:
+        modal = modal or self._kho_root()
+        return [
+            modal.locator("[nztype='reload'], [data-icon='reload'], [data-icon='redo'], [class*='reload']"),
+            modal.locator("i.bi-arrow-repeat").locator("xpath=ancestor::a[1]"),
+            modal.locator("[nztooltiptitle*='Làm mới']").locator("xpath=.//a | ancestor::a[1]"),
+            modal.locator("span").filter(has_text="Làm mới").locator("xpath=ancestor::a[1]"),
+        ]
+
+    def _file_appears_in_kho(self, file_name: str, attempts: int = 15, refresh_every: int = 5) -> bool:
+        modal = self._kho_root()
+        search_terms = [file_name, Path(file_name).stem]
+        search_input = self._kho_file_search_input(modal)
+
+        for attempt in range(attempts):
+            try:
+                search_input.fill("")
+                search_input.fill(file_name)
+                self._trigger_kho_search(modal)
+            except Exception:
+                pass
+
+            for term in search_terms:
+                try:
+                    if modal.get_by_text(term, exact=False).count() > 0:
+                        return True
+                except Exception:
+                    pass
+
+            if refresh_every > 0 and attempt % refresh_every == refresh_every - 1:
+                for candidate in self._kho_refresh_candidates(modal):
+                    try:
+                        refresh_btn = self._first_visible(candidate)
+                        if refresh_btn is None:
+                            continue
+                        refresh_btn.click(force=True, timeout=2000)
+                        time.sleep(1)
+                        self._trigger_kho_search(modal)
+                        break
+                    except Exception:
+                        pass
+
+            time.sleep(1.5)
+        return False
+
     def _kho_root(self):
         assert self.page is not None
         modal_title = "Kho d\u1eef li\u1ec7u"
@@ -958,6 +1060,8 @@ class EOfficeBot:
 
     def open_file_modal(self) -> None:
         assert self.page is not None
+        if self._is_kho_modal_open():
+            return
         btn = self.page.locator("app-file-attachment a.btn").filter(has_text="Chọn file").first
         btn.wait_for(state="visible", timeout=30000)
         btn.click(force=True)
@@ -967,7 +1071,24 @@ class EOfficeBot:
 
     def close_file_modal(self) -> None:
         assert self.page is not None
-        self.page.locator("button, a").filter(has_text="Đóng").last.click(force=True)
+        if not self._is_kho_modal_open():
+            return
+        modal = self._kho_root()
+        close_candidates = self._modal_footer_action_candidates(modal, "Đóng") + [
+            modal.locator("button[aria-label='Close']"),
+            modal.locator(".ant-modal-close"),
+        ]
+        for candidate in close_candidates:
+            try:
+                close_btn = self._first_visible(candidate)
+                if close_btn is None:
+                    continue
+                close_btn.click(force=True, timeout=2000)
+                time.sleep(0.8)
+                if not self._is_kho_modal_open():
+                    return
+            except Exception:
+                pass
 
     def select_folder_in_kho(self, folder_name: str = "files") -> None:
         modal = self._kho_root()
@@ -1195,9 +1316,10 @@ class EOfficeBot:
 
     def search_file_in_modal(self, file_name: str) -> None:
         modal = self._kho_root()
-        search_input = modal.locator("input[placeholder*='Tìm kiếm file'], input").first
+        search_input = self._kho_file_search_input(modal)
         search_input.fill("")
         search_input.fill(file_name)
+        self._trigger_kho_search(modal)
         time.sleep(1)
 
     def select_file_card_in_modal(self, file_name: str) -> None:
@@ -1225,6 +1347,10 @@ class EOfficeBot:
         assert self.page is not None
 
         self.open_file_modal()
+        if self._file_appears_in_kho(file_path.name, attempts=2, refresh_every=0):
+            logging.info("File đã có sẵn trong kho, bỏ qua upload: %s", file_path.name)
+            return
+
         self.open_upload_menu_for_current_folder()
         modal = self._kho_root()
 
@@ -1347,14 +1473,19 @@ class EOfficeBot:
             self.screenshot("debug_upload_submit_not_found.png")
             raise RuntimeError(f"Kh\u00f4ng t\u00ecm th\u1ea5y n\u00fat upload cho: {file_path.name}")
 
-        # Upload popup may stay open after submit; close it explicitly before verifying the library list.
-        for _ in range(10):
+        popup_closed = False
+        for _ in range(20):
             try:
                 if upload_popup.count() == 0 or not upload_popup.first.is_visible():
+                    popup_closed = True
                     break
             except Exception:
+                popup_closed = True
                 break
-            closed = False
+            time.sleep(1)
+
+        if not popup_closed:
+            logging.warning("Popup upload không tự đóng sau khi submit, thử đóng thủ công: %s", file_path.name)
             close_candidates = self._modal_footer_action_candidates(upload_popup, "Thoát") + [
                 upload_popup.locator("button[aria-label='Close']"),
                 upload_popup.locator(".ant-modal-close"),
@@ -1365,77 +1496,44 @@ class EOfficeBot:
                     if close_btn is None:
                         continue
                     close_btn.click(force=True, timeout=2000)
-                    closed = True
+                    popup_closed = True
                     break
                 except Exception:
                     pass
-            if not closed:
-                time.sleep(1)
-                continue
             time.sleep(1)
 
-        search_input = modal.locator("input[placeholder*='Tìm kiếm file'], input").first
-        refresh_candidates = [
-            modal.locator("i.bi-arrow-repeat").locator("xpath=ancestor::a[1]"),
-            modal.locator("[nztooltiptitle*='Làm mới']").locator("xpath=.//a | ancestor::a[1]"),
-            modal.locator("span").filter(has_text="Làm mới").locator("xpath=ancestor::a[1]"),
-        ]
-        search_terms = [file_path.name, file_path.stem]
-        found_in_list = False
+        if not self._file_appears_in_kho(file_path.name, attempts=10, refresh_every=3):
+            logging.info("Không thấy file ngay trong modal hiện tại, thử mở lại Kho dữ liệu: %s", file_path.name)
+            self.close_file_modal()
+            self.open_file_modal()
+            self.select_folder_in_kho("files")
 
-        for attempt in range(45):
-            try:
-                search_input.fill("")
-                search_input.fill(file_path.name)
-            except Exception:
-                pass
-
-            for term in search_terms:
-                try:
-                    if modal.get_by_text(term, exact=False).count() > 0:
-                        found_in_list = True
-                        break
-                except Exception:
-                    pass
-            if found_in_list:
-                break
-
-            if attempt % 5 == 4:
-                for candidate in refresh_candidates:
-                    try:
-                        refresh_btn = self._first_visible(candidate)
-                        if refresh_btn is None:
-                            continue
-                        refresh_btn.click(force=True, timeout=2000)
-                        time.sleep(1)
-                        break
-                    except Exception:
-                        pass
-
-            time.sleep(2)
-
-        if not found_in_list:
+        if not self._file_appears_in_kho(file_path.name, attempts=15, refresh_every=3):
             self.screenshot("debug_upload_finish_timeout.png")
             raise RuntimeError(f"Upload không hoàn tất hoặc không thấy file sau khi upload: {file_path.name}")
+        logging.info("Đã upload xong file vào kho: %s", file_path.name)
 
     def ensure_files_uploaded(self, docs: list[SourceDocument]) -> None:
         uploaded_state = load_state("uploaded_files", {})
         self.goto_create_form()
-
-        for doc in docs:
-            for att in doc.attachments:
-                if not att.local_path:
-                    continue
-                local_path = Path(att.local_path)
-                if not local_path.exists():
-                    logging.warning("Thiếu file local: %s", local_path)
-                    continue
-                if uploaded_state.get(local_path.name):
-                    continue
-                logging.info("Upload sẵn file vào kho: %s", local_path.name)
-                self.upload_file_to_kho(local_path)
-                uploaded_state[local_path.name] = True
-                save_state("uploaded_files", uploaded_state)
+        self.open_file_modal()
+        try:
+            for doc in docs:
+                for att in doc.attachments:
+                    if not att.local_path:
+                        continue
+                    local_path = Path(att.local_path)
+                    if not local_path.exists():
+                        logging.warning("Thiếu file local: %s", local_path)
+                        continue
+                    if uploaded_state.get(local_path.name):
+                        continue
+                    logging.info("Upload sẵn file vào kho: %s", local_path.name)
+                    self.upload_file_to_kho(local_path)
+                    uploaded_state[local_path.name] = True
+                    save_state("uploaded_files", uploaded_state)
+        finally:
+            self.close_file_modal()
 
     # -------------------------
     # LƯU FORM
