@@ -599,6 +599,23 @@ class EOfficeBot:
                     pass
         return False
 
+    def _locator_has_selected_files(self, locator) -> bool:
+        try:
+            count = min(locator.count(), 5)
+        except Exception:
+            return False
+
+        for i in range(count):
+            try:
+                selected_count = locator.nth(i).evaluate(
+                    "(el) => el instanceof HTMLInputElement && el.files ? el.files.length : 0"
+                )
+                if selected_count and int(selected_count) > 0:
+                    return True
+            except Exception:
+                pass
+        return False
+
     def _kho_root(self):
         assert self.page is not None
         modal_title = "Kho d\u1eef li\u1ec7u"
@@ -1153,8 +1170,10 @@ class EOfficeBot:
                 for i in range(min(file_input.count(), 5)):
                     try:
                         file_input.nth(i).set_input_files(str(file_path.resolve()))
-                        clicked_file_chooser = True
-                        break
+                        time.sleep(0.5)
+                        if self._locator_has_selected_files(file_input):
+                            clicked_file_chooser = True
+                            break
                     except Exception:
                         pass
                 if clicked_file_chooser:
@@ -1163,25 +1182,22 @@ class EOfficeBot:
                 pass
 
         if not clicked_file_chooser:
-            chooser_targets = [
-                upload_popup.locator("text=Chọn file để upload").first,
-                upload_popup.locator("div").filter(has_text="Chọn file để upload").first,
-                self.page.get_by_text("Chọn file để upload", exact=True).first,
-            ]
-            for target in chooser_targets:
-                try:
-                    with self.page.expect_file_chooser(timeout=5000) as fc_info:
-                        target.click(force=True)
-                    chooser = fc_info.value
-                    chooser.set_files(str(file_path.resolve()))
-                    clicked_file_chooser = True
-                    break
-                except Exception:
-                    pass
-
-        if not clicked_file_chooser:
             self.screenshot("debug_upload_popup_no_filechooser.png")
-            raise RuntimeError(f"Không mở được hộp chọn file cho: {file_path.name}")
+            raise RuntimeError(f"Không gán được file vào input upload cho: {file_path.name}")
+
+        file_name_visible = False
+        for _ in range(10):
+            try:
+                if upload_popup.get_by_text(file_path.name, exact=False).count() > 0:
+                    file_name_visible = True
+                    break
+            except Exception:
+                pass
+            time.sleep(0.5)
+
+        if not file_name_visible:
+            self.screenshot("debug_upload_popup_file_not_visible.png")
+            raise RuntimeError(f"Popup upload chưa hiển thị file đã chọn: {file_path.name}")
 
         time.sleep(1)
 
