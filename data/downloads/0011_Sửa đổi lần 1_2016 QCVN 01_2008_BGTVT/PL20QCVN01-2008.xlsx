@@ -1,0 +1,190 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:o="urn:schemas-microsoft-com:office:office" lang="en-us" dir="ltr">
+<head><meta name="GENERATOR" content="Microsoft SharePoint" /><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta http-equiv="Expires" content="0" /><meta http-equiv="X-UA-Compatible" content="IE=8"/><meta name="ROBOTS" content="NOHTMLINDEX" /><title>
+	
+    
+
+</title><link rel="stylesheet" type="text/css" href="/_layouts/15/1033/styles/corev15.css?rev=vNdEJL6%2BwYC8DTL3JARWRg%3D%3D"/>
+<link rel="stylesheet" type="text/css" href="/_layouts/15/1033/styles/error.css?rev=MY4NzI9pF2DleWDUCxgpdw%3D%3D"/>
+<script type="text/javascript" src="/_layouts/15/init.debug.js?rev=2y%2FleZ8VgiQiqWcfuLWP%2BQ%3D%3D"></script>
+<script type="text/javascript" src="/ScriptResource.axd?d=VGk7Ckt9ojr_9kMpcNS2-xAfvdBi5Wx_UjdR7PQ6xrPJV5x_OruwMAHZ_TmpqmgJdcF8EqmOhe-SpTn4AvuLceiMxx8u4yZEY8fBAnqXgi1m85-CVmhrjLUcrS86cLFpvPdelR4qi_ZJ57GDyTb-nPCc-WADqm1vunuAcTkxQQrRNubuS9auHhRPpNQmU82Q0&amp;t=13798092"></script>
+<script type="text/javascript" src="/_layouts/15/blank.js?rev=ZaOXZEobVwykPO9g8hq%2F8A%3D%3D"></script>
+<script type="text/javascript" src="/ScriptResource.axd?d=jzI9xXKCl5Cf51zAf6eaj-GRBDgyy74JpsxMuJjrt2AOQfVdp9K1FRqEIlty1QAv-MaYm4pez479eBjgQBnacDPpZVV2ca2H6T4vk3_WcKVk-5iOTiAHFYPBRZKH85buyGscAHqzzzlKH74RKRcY27b-W5Ijxy_CTaHMqV7hM_J6oRIG1B22_GtVtzYbfC9rFnXjLnFH55PgwiXa9xqC_g2&amp;t=13798092"></script>
+<script type="text/javascript">RegisterSod("initstrings.js", "\u002f_layouts\u002f15\u002f1033\u002finitstrings.debug.js?rev=xaAj1Ek3gA3b\u00252BCOSvbNIxA\u00253D\u00253D");</script>
+<script type="text/javascript">RegisterSod("strings.js", "\u002f_layouts\u002f15\u002f1033\u002fstrings.debug.js?rev=gQZJADH\u00252BK\u00252BakRcjT51d75w\u00253D\u00253D");RegisterSodDep("strings.js", "initstrings.js");</script>
+<script type="text/javascript">RegisterSod("sp.init.js", "\u002f_layouts\u002f15\u002fsp.init.debug.js?rev=I0HjXe8jNoV0TuC6ujkb8A\u00253D\u00253D");</script>
+<script type="text/javascript">RegisterSod("sp.res.resx", "\u002f_layouts\u002f15\u002fScriptResx.ashx?culture=en\u00252Dus\u0026name=SP\u00252ERes\u0026rev=JB0sghN7xH87DiJ2RGYN0Q\u00253D\u00253D");</script>
+<script type="text/javascript">RegisterSod("sp.ui.dialog.js", "\u002f_layouts\u002f15\u002fsp.ui.dialog.debug.js?rev=eq0EZVg7vq4rAQWMsE2OeA\u00253D\u00253D");RegisterSodDep("sp.ui.dialog.js", "sp.init.js");RegisterSodDep("sp.ui.dialog.js", "sp.res.resx");</script>
+<script type="text/javascript">RegisterSod("core.js", "\u002f_layouts\u002f15\u002fcore.debug.js?rev=rKwxVyVAJjaglT\u00252FCwvIytQ\u00253D\u00253D");RegisterSodDep("core.js", "strings.js");</script>
+<link rel="shortcut icon" href="/_layouts/15/images/favicon.ico?rev=23" type="image/vnd.microsoft.icon" /></head>
+<body id="ms-error-body" onload="if (typeof(_spBodyOnLoadWrapper) != 'undefined') _spBodyOnLoadWrapper();">
+	<form method="post" action="./login.aspx?ReturnUrl=%2fcontents%2fRules%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3d%252Fcontents%252FRules%252FLists%252FRules%252FAttachments%252F11%252FPL20QCVN01-2008.xlsx&amp;Source=%2fcontents%2fRules%2fLists%2fRules%2fAttachments%2f11%2fPL20QCVN01-2008.xlsx" id="aspnetForm" onsubmit="if (typeof(_spFormOnSubmitWrapper) != &#39;undefined&#39;) {return _spFormOnSubmitWrapper();} else {return true;}">
+<div class="aspNetHidden">
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="" />
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTIxMTM5MzczMjAPZBYCZg9kFgICAQ9kFgICAw9kFggCBQ8WAh4HVmlzaWJsZWhkAgcPFgIfAGhkAgkPZBYCAgEPZBYEAgEPFgIeBFRleHRlZAIDD2QWAmYPZBYCAgsPEA8WAh4HQ2hlY2tlZGhkZGRkAgsPFgIfAGhkGAEFHl9fQ29udHJvbHNSZXF1aXJlUG9zdEJhY2tLZXlfXxYBBS1jdGwwMCRQbGFjZUhvbGRlck1haW4kbG9naW5Db250cm9sJFJlbWVtYmVyTWVDPhr92u07eTXIZbSELz+Ihu8oz53mks/N+Y7DrY0Fpg==" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=O5g5ZCsmdvmWm4eJQGp4RoO-P8d1fP6qZEGrnAJhnvMZGkDZqbJ8rsQ4Ybx19-H4FzLLuW7DtabmNJZuVZFyEh2euy0sJXlwWFmhcaRtJDA1&amp;t=638286317964787378" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+var g_presenceEnabled = true;
+var g_wsaEnabled = false;
+var g_wsaQoSEnabled = false;
+var g_wsaQoSDataPoints = [];
+var g_wsaLCID = 1033;
+var g_wsaListTemplateId = null;
+var g_wsaSiteTemplateId = 'BLANKINTERNET#0';
+var _fV4UI=true;var _spPageContextInfo = {webServerRelativeUrl: "\u002f", webAbsoluteUrl: "https:\u002f\u002fwww.vr.org.vn", siteAbsoluteUrl: "https:\u002f\u002fwww.vr.org.vn", serverRequestPath: "\u002flogin.aspx", layoutsUrl: "_layouts\u002f15", webTitle: "C\u1ED5ng th\u00F4ng tin \u0111i\u1EC7n t\u1EED C\u1EE5c \u0110\u0103ng ki\u1EC3m", webTemplate: "53", tenantAppVersion: "0", isAppWeb: false, Has2019Era: true, webLogoUrl: "\u002fSiteAssets\u002flogo.png", webLanguage: 1066, currentLanguage: 1033, currentUICultureName: "en-US", currentCultureName: "en-US", clientServerTimeDelta: new Date("2026-04-18T10:29:49.1537940Z") - new Date(), siteClientTag: "800$$15.0.5545.1000", crossDomainPhotosEnabled:false, webUIVersion:15, webPermMasks:{High:16,Low:196673}, pagePersonalizationScope:1, alertsEnabled:false, siteServerRelativeUrl: "\u002f", allowSilverlightPrompt:'True'};var MSOWebPartPageFormName = 'aspnetForm';//]]>
+</script>
+
+<script src="/_layouts/15/blank.js?rev=ZaOXZEobVwykPO9g8hq%2F8A%3D%3D" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(DeferWebFormInitCallback) == 'function') DeferWebFormInitCallback();//]]>
+</script>
+
+<script src="/WebResource.axd?d=4xuNcefKKtDQxQIwECKbnFxuerzzWDw5OAINkewqzpdSMkk02WfIBrevBcy65qEspgqSDNBuY6GrzZGtd01vLW9aTzh1lxNRjAfR3xzy8QA1&amp;t=638286317964787378" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="C2EE9ABB" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdAAXkDqlPuOEC9GMu+rZu1GjlVHqDlMz28DIGeUK2bjUjAyepBdcBZxeLjaf0wVmtan7My7yfRDEGsF+wNVQdneOs7pmBI7NvsZG1EUSMUQcZJEN8xnORMbTs7QVL/BWxJinrbnDIMiCoxxIviIfMn9TN" />
+</div>
+	<script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager', 'aspnetForm', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+	<div id="ms-error-header" class="ms-pr">
+		<h1 class="ms-core-pageTitle">
+			
+		</h1>
+		<div>
+			
+		</div>
+	</div>
+	<div id="ms-error">
+		<div id="ms-error-top">
+			
+		</div>
+		<div id="ms-error-content">
+			<div id="ms-error-error-content">
+				<div id="DeltaPlaceHolderMain">
+	
+					
+
+    <div id="SslWarning" style="color: red; display: none">
+        
+    </div>
+    <script language="javascript">
+        //if (document.location.protocol != 'https:') {
+        var SslWarning = document.getElementById('SslWarning');
+        SslWarning.style.display = '';
+        //}
+    </script>
+    <style>
+        html { background: #D3EEFB !important; }
+        body { background: #D3EEFB; display: block; height: 100%; overflow: hidden; background-size: 100% 100% !important; }
+        .login-box { width: 442px; margin-left: auto; margin-right: auto; padding: 15px; }
+            .login-box table { border: 1px solid #FFF; border-radius: 8px 8px; background: url(/Publishing_Resources/images/bg_login.png) repeat-y top center; background-size: 100%; overflow: hidden; padding: 30px 20px; }
+        td img { display: block; margin: 30px auto 20px; }
+        #ms-error-header { margin: 22px 0px 16px; min-height: 50px; }
+        .button input { margin-top: 20px; margin-bottom: 15px; }
+        input:focus { outline: none; }
+        .lable { font-size: 15px; color: #FFF; }
+        html, body { width: 100%; height: 100%; margin: 0px; padding: 0px; }
+        input[type=button], input[type=submit], button { border-radius: 5px 5px; border: 1px solid #FFF; background-color: #ED1C24; font-size: 14px; color: #FFF; }
+        .title-head { font: normal 22px/25px Roboto,Arial,Tahoma; text-transform: uppercase; color: #FFF; text-align: center; padding-bottom: 20px; }
+        .ms-inputuserfield { border: 1px solid #dfdfdf; border-radius: 3px; margin: 5px auto; background: #FFF; }
+        input:-webkit-autofill {background:#FFF;}
+    </style>
+    <table id="ctl00_PlaceHolderMain_loginControl" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;">
+		<tr>
+			<td>
+            <div class="login-box">
+                <div>
+                    <img src="/Publishing_Resources/images/logo_login.png">
+                </div>
+                <table width="100%">
+                    <tr>
+                        <td colspan="2" class="title-head">Đăng nhập hệ thống</td>
+                    </tr>
+                    <tr>
+                        <td nowrap="nowrap" class="lable">
+                            Tên đăng nhập
+                        </td>
+                        <td width="100%" style="text-align: center">
+
+                            <input name="ctl00$PlaceHolderMain$loginControl$UserName" type="text" id="ctl00_PlaceHolderMain_loginControl_UserName" autocomplete="off" placeholder="Tên đăng nhập" class="ms-inputuserfield" style="width:265px;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td nowrap="nowrap" class="lable">
+                            Mật khẩu
+                        </td>
+                        <td width="100%;" style="text-align: center">
+                            <input name="ctl00$PlaceHolderMain$loginControl$password" type="password" id="ctl00_PlaceHolderMain_loginControl_password" placeholder="Mật khẩu" autocomplete="off" class="ms-inputuserfield" style="width:265px;" /></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <input type="submit" name="ctl00$PlaceHolderMain$loginControl$login" value="Đăng nhập" id="ctl00_PlaceHolderMain_loginControl_login" class="buttonsubmit" /></td>
+                    </tr>
+                    <tr style="display: none;">
+                        <td colspan="2">
+                            <input id="ctl00_PlaceHolderMain_loginControl_RememberMe" type="checkbox" name="ctl00$PlaceHolderMain$loginControl$RememberMe" /><label for="ctl00_PlaceHolderMain_loginControl_RememberMe">Ghi nhớ tài khoản.</label></td>
+                    </tr>
+                    <tr>
+                        <td class="error" colspan="2">
+                            <span id="ctl00_PlaceHolderMain_loginControl_FailureText" class="ms-error"></span></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+		</tr>
+	</table>
+
+				
+</div>
+			</div>
+			
+		</div>
+	</div>
+
+
+<script type="text/javascript">
+//<![CDATA[
+var _fV4UI = true;WebForm_AutoFocus('ctl00_PlaceHolderMain_loginControl');//]]>
+</script>
+</form>
+</body>
+</html>
